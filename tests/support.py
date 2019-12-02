@@ -18,6 +18,7 @@ def import_ujson_universal():
         raise ImportError('Cannot find ujson.hpy.so')
     #
     # load it through hpy_universal
+    sopath = sopath.absolute()
     class Spec:
         name = 'ujson_hpy'
         origin = str(sopath)

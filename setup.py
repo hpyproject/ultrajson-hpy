@@ -68,7 +68,7 @@ module1 = Extension(
     'ujson_hpy',
      sources = [
          './python/ujson.c',
-         './python/objToJSON.c',
+#         './python/objToJSON.c',
          './python/JSONtoObj.c',
          './lib/ultrajsonenc.c',
          './lib/ultrajsondec.c'

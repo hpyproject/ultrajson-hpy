@@ -165,9 +165,12 @@ JSONToObj_impl(HPyContext ctx, HPy self, HPy arg)
     Object_newUnsignedLong,
     Object_newDouble,
     Object_releaseObject,
-    PyObject_Malloc,
-    PyObject_Free,
-    PyObject_Realloc
+    malloc,
+    free,
+    realloc
+    /* PyObject_Malloc, */
+    /* PyObject_Free, */
+    /* PyObject_Realloc */
   };
 
   // use decoder.prv to pass around the ctx
@@ -227,44 +230,44 @@ JSONToObj_impl(HPyContext ctx, HPy self, HPy arg)
   return h_ret;
 }
 
-HPy_DEF_METH_O(JSONFileToObj)
-static HPy
-JSONFileToObj_impl(HPyContext ctx, HPy self, HPy h_arg)
-{
-  PyObject *file = HPy_AsPyObject(ctx, h_arg);
-  PyObject *read;
-  PyObject *string;
-  HPy h_result;
+/* HPy_DEF_METH_O(JSONFileToObj) */
+/* static HPy */
+/* JSONFileToObj_impl(HPyContext ctx, HPy self, HPy h_arg) */
+/* { */
+/*   PyObject *file = HPy_AsPyObject(ctx, h_arg); */
+/*   PyObject *read; */
+/*   PyObject *string; */
+/*   HPy h_result; */
 
-  if (!PyObject_HasAttrString (file, "read"))
-  {
-    HPyErr_SetString(ctx, ctx->h_TypeError, "expected file");
-    return HPy_NULL;
-  }
+/*   if (!PyObject_HasAttrString (file, "read")) */
+/*   { */
+/*     HPyErr_SetString(ctx, ctx->h_TypeError, "expected file"); */
+/*     return HPy_NULL; */
+/*   } */
 
-  read = PyObject_GetAttrString (file, "read");
+/*   read = PyObject_GetAttrString (file, "read"); */
 
-  if (!PyCallable_Check (read)) {
-    Py_XDECREF(read);
-    HPyErr_SetString(ctx, ctx->h_TypeError, "expected file");
-    return HPy_NULL;
-  }
+/*   if (!PyCallable_Check (read)) { */
+/*     Py_XDECREF(read); */
+/*     HPyErr_SetString(ctx, ctx->h_TypeError, "expected file"); */
+/*     return HPy_NULL; */
+/*   } */
 
-  string = PyObject_CallObject (read, NULL);
-  Py_XDECREF(read);
+/*   string = PyObject_CallObject (read, NULL); */
+/*   Py_XDECREF(read); */
 
-  if (string == NULL)
-  {
-    return HPy_NULL;
-  }
+/*   if (string == NULL) */
+/*   { */
+/*     return HPy_NULL; */
+/*   } */
 
-  HPy h_string = HPy_FromPyObject(ctx, string);
-  h_result = JSONToObj_impl(ctx, self, h_string);
-  Py_XDECREF(string);
-  HPy_Close(ctx, h_string);
+/*   HPy h_string = HPy_FromPyObject(ctx, string); */
+/*   h_result = JSONToObj_impl(ctx, self, h_string); */
+/*   Py_XDECREF(string); */
+/*   HPy_Close(ctx, h_string); */
 
-  if (HPy_IsNull(h_result)) {
-    return HPy_NULL;
-  }
-  return h_result;
-}
+/*   if (HPy_IsNull(h_result)) { */
+/*     return HPy_NULL; */
+/*   } */
+/*   return h_result; */
+/* } */
