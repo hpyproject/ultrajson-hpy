@@ -752,7 +752,6 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy arg)
   char buffer[65536];
   char *ret;
   HPy h_ret;
-  PyObject *newobj;
   PyObject *oinput = NULL;
   PyObject *oensureAscii = NULL;
   PyObject *oencodeHTMLChars = NULL;
@@ -856,69 +855,76 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy arg)
   return h_ret;
 }
 
-PyObject* objToJSONFile(PyObject* self, PyObject *args, PyObject *kwargs)
+HPy_DEF_METH_VARARGS(objToJSONFile)
+static HPy
+objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs)
 {
-  PyObject *data;
-  PyObject *file;
-  PyObject *string;
+  HPy data;
+  HPy file;
+  PyObject *file_o;
+  HPy string;
+  PyObject *string_o;
   PyObject *write;
   PyObject *argtuple;
 
   PRINTMARK();
 
-  if (!PyArg_ParseTuple (args, "OO", &data, &file))
+  if (!HPyArg_Parse(ctx, args, nargs, "OO", &data, &file))
   {
-    return NULL;
+    return HPy_NULL;
   }
 
-  if (!PyObject_HasAttrString (file, "write"))
+  file_o = HPy_AsPyObject(ctx, file);
+
+  if (!PyObject_HasAttrString (file_o, "write"))
   {
     PyErr_Format (PyExc_TypeError, "expected file");
-    return NULL;
+    return HPy_NULL;
   }
 
-  write = PyObject_GetAttrString (file, "write");
+  write = PyObject_GetAttrString (file_o, "write");
 
   if (!PyCallable_Check (write))
   {
     Py_XDECREF(write);
     PyErr_Format (PyExc_TypeError, "expected file");
-    return NULL;
+    return HPy_NULL;
   }
 
-  argtuple = PyTuple_Pack(1, data);
+  //XXX: FIXME -- handle kwargs
+  string = objToJSON_impl(ctx, self, data);
+  if (HPy_IsNull(string)) {
+    Py_XDECREF(write);
+    return HPy_NULL;
+  }
 
-  //XXX: FIXME -- handle more args
-  //string = objToJSON (self, argtuple, kwargs);
-  abort();
-
-  if (string == NULL)
+  string_o = HPy_AsPyObject(ctx, string);
+  if (string_o == NULL)
   {
     Py_XDECREF(write);
-    Py_XDECREF(argtuple);
-    return NULL;
+    return HPy_NULL;
   }
 
-  Py_XDECREF(argtuple);
-
-  argtuple = PyTuple_Pack (1, string);
+  argtuple = PyTuple_Pack (1, string_o);
   if (argtuple == NULL)
   {
     Py_XDECREF(write);
-    return NULL;
+    Py_XDECREF(string_o);
+    return HPy_NULL;
   }
   if (PyObject_CallObject (write, argtuple) == NULL)
   {
     Py_XDECREF(write);
     Py_XDECREF(argtuple);
-    return NULL;
+    Py_XDECREF(string_o);
+    return HPy_NULL;
   }
 
   Py_XDECREF(write);
   Py_DECREF(argtuple);
-  Py_XDECREF(string);
+  Py_XDECREF(string_o);
 
   PRINTMARK();
 
-  Py_RETURN_NONE;
+  return HPy_Dup(ctx, ctx->h_None);
 }

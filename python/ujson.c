@@ -43,9 +43,9 @@ http://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
 void initObjToJSON(void);
 
 HPy_DECL_METH_O(objToJSON)
+HPy_DECL_METH_VARARGS(objToJSONFile)
 
-/* objToJSONFile */
-PyObject* objToJSONFile(PyObject* self, PyObject *args, PyObject *kwargs);
+/* JSONToobj */
 
 HPy_DECL_METH_O(JSONToObj)
 HPy_DECL_METH_O(JSONFileToObj)
@@ -56,9 +56,9 @@ HPy_DECL_METH_O(JSONFileToObj)
 static HPyMethodDef ujsonMethods[] = {
   {"encode", objToJSON, HPy_METH_O, "Converts arbitrary object recursively into JSON. " ENCODER_HELP_TEXT},
   {"decode", JSONToObj, HPy_METH_O, "Converts JSON as string to dict object structure. Use precise_float=True to use high precision float decoder."},
-  {"dumps", (HPyMeth) objToJSON, METH_VARARGS | METH_KEYWORDS,  "Converts arbitrary object recursively into JSON. " ENCODER_HELP_TEXT},
+  {"dumps", objToJSON, HPy_METH_O,  "Converts arbitrary object recursively into JSON. " ENCODER_HELP_TEXT},
   {"loads", JSONToObj, HPy_METH_O,  "Converts JSON as string to dict object structure. Use precise_float=True to use high precision float decoder."},
-  {"dump", (HPyMeth) objToJSONFile, METH_VARARGS | METH_KEYWORDS, "Converts arbitrary object recursively into JSON file. " ENCODER_HELP_TEXT},
+  {"dump", objToJSONFile, HPy_METH_VARARGS, "Converts arbitrary object recursively into JSON file. " ENCODER_HELP_TEXT},
   {"load", JSONFileToObj, HPy_METH_O, "Converts JSON as file to dict object structure. Use precise_float=True to use high precision float decoder."},
   {NULL, NULL, 0, NULL}       /* Sentinel */
 };
