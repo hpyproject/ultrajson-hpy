@@ -74,7 +74,7 @@ module1 = Extension(
          './python/JSONtoObj.c',
          './lib/ultrajsonenc.c',
          './lib/ultrajsondec.c'
-     ],
+     ] + hpy.devel.get_sources(),
      include_dirs = ['./python', './lib', hpy.devel.get_include()],
      extra_compile_args = ['-D_GNU_SOURCE'] + EXTRA_COMPILE_ARGS,
      extra_link_args = ['-lstdc++', '-lm']
