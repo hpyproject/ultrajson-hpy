@@ -743,20 +743,21 @@ static char *Object_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outLen)
   return GET_TC(tc)->iterGetName(obj, tc, outLen);
 }
 
-HPy_DEF_METH_O(objToJSON)
+HPy_DEF_METH_KEYWORDS(objToJSON)
 static HPy
-objToJSON_impl(HPyContext ctx, HPy self, HPy arg)
+objToJSON_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
 {
-  static char *kwlist[] = { "obj", "ensure_ascii", "encode_html_chars", "escape_forward_slashes", "sort_keys", "indent", NULL };
+  static const char *kwlist[] = { "obj", "ensure_ascii", "encode_html_chars", "escape_forward_slashes", "sort_keys", "indent", NULL };
 
   char buffer[65536];
   char *ret;
   HPy h_ret;
-  PyObject *oinput = NULL;
-  PyObject *oensureAscii = NULL;
-  PyObject *oencodeHTMLChars = NULL;
-  PyObject *oescapeForwardSlashes = NULL;
-  PyObject *osortKeys = NULL;
+  HPy oinput = HPy_NULL;
+  HPy oensureAscii = HPy_NULL;
+  HPy oencodeHTMLChars = HPy_NULL;
+  HPy oescapeForwardSlashes = HPy_NULL;
+  HPy osortKeys = HPy_NULL;
+  PyObject *oinput_o;
 
   JSONObjectEncoder encoder =
   {
@@ -789,30 +790,29 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy arg)
 
   PRINTMARK();
 
-  // XXX: implement kwarg parsing for HPy
-  // if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOOi", kwlist, &oinput, &oensureAscii, &oencodeHTMLChars, &oescapeForwardSlashes, &osortKeys, &encoder.indent))
-  // {
-  //   return NULL;
-  // }
+  if (!HPyArg_ParseKeywords(ctx, args, nargs, kw, "O|OOOOi", kwlist, &oinput, &oensureAscii, &oencodeHTMLChars, &oescapeForwardSlashes, &osortKeys, &encoder.indent))
+  {
+     return HPy_NULL;
+  }
 
-  oinput = HPy_AsPyObject(ctx, arg);
+  oinput_o = HPy_AsPyObject(ctx, oinput);
 
-  if (oensureAscii != NULL && !PyObject_IsTrue(oensureAscii))
+  if (!HPy_IsNull(oensureAscii) && !HPyObject_IsTrue(ctx, oensureAscii))
   {
     encoder.forceASCII = 0;
   }
 
-  if (oencodeHTMLChars != NULL && PyObject_IsTrue(oencodeHTMLChars))
+  if (!HPy_IsNull(oencodeHTMLChars) && HPyObject_IsTrue(ctx, oencodeHTMLChars))
   {
     encoder.encodeHTMLChars = 1;
   }
 
-  if (oescapeForwardSlashes != NULL && !PyObject_IsTrue(oescapeForwardSlashes))
+  if (!HPy_IsNull(oescapeForwardSlashes) && !HPyObject_IsTrue(ctx, oescapeForwardSlashes))
   {
     encoder.escapeForwardSlashes = 0;
   }
 
-  if (osortKeys != NULL && PyObject_IsTrue(osortKeys))
+  if (!HPy_IsNull(osortKeys) && HPyObject_IsTrue(ctx, osortKeys))
   {
     encoder.sortKeys = 1;
   }
@@ -821,7 +821,7 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy arg)
                  NULL, NULL, 'e', DCONV_DECIMAL_IN_SHORTEST_LOW, DCONV_DECIMAL_IN_SHORTEST_HIGH, 0, 0);
 
   PRINTMARK();
-  ret = JSON_EncodeObject (oinput, &encoder, buffer, sizeof (buffer));
+  ret = JSON_EncodeObject (oinput_o, &encoder, buffer, sizeof (buffer));
   PRINTMARK();
 
   dconv_d2s_free();
@@ -855,9 +855,9 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy arg)
   return h_ret;
 }
 
-HPy_DEF_METH_VARARGS(objToJSONFile)
+HPy_DEF_METH_KEYWORDS(objToJSONFile)
 static HPy
-objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs)
+objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
 {
   HPy data;
   HPy file;
@@ -891,8 +891,8 @@ objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs)
     return HPy_NULL;
   }
 
-  //XXX: FIXME -- handle kwargs
-  string = objToJSON_impl(ctx, self, data);
+  HPy objtojson_args[] = { data };
+  string = objToJSON_impl(ctx, self, objtojson_args, 1, kw);
   if (HPy_IsNull(string)) {
     Py_XDECREF(write);
     return HPy_NULL;
