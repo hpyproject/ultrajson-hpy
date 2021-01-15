@@ -1,11 +1,13 @@
 try:
   from setuptools import setup, Extension
+  from setuptools.command.build_ext import build_ext
 except ImportError:
   from distutils.core import setup, Extension
+  from distutils.command.build_ext import build_ext
 import distutils.sysconfig
 from distutils.sysconfig import customize_compiler
 from distutils.command.build_clib import build_clib
-from distutils.command.build_ext import build_ext
+
 import os.path
 import re
 import sys
