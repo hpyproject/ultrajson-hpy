@@ -1,3 +1,5 @@
+.PHONY: all test benchmark
+
 all:
 	python setup.py build_ext -if
 	@echo
@@ -10,6 +12,5 @@ test:
 	#XXX we need a way to re-enable this test on CPython
 	#HPY_UNIVERSAL=1 python -m pytest tests/tests.py
 
-.PHONY: benchmark
 benchmark:
 	python -m benchmark.main
