@@ -13,7 +13,7 @@ import re
 import sys
 from glob import glob
 
-CLASSIFIERS = filter(None, map(str.strip,
+CLASSIFIERS = list(filter(None, map(str.strip,
 """
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
@@ -24,7 +24,7 @@ Programming Language :: Python :: 2.7
 Programming Language :: Python :: 3
 Programming Language :: Python :: 3.2
 Programming Language :: Python :: 3.4
-""".splitlines()))
+""".splitlines())))
 
 source_files = glob("./deps/double-conversion/double-conversion/*.cc")
 source_files.append("./lib/dconv_wrapper.cc")
