@@ -5,8 +5,10 @@ python:
   - "3.8"
 
 env:
-  - TOXENV="py38"
+  - TOXENV="py38-cpython"
   - TOXENV="py38-universal"
+  - TOXENV="py39-cpython"
+  - TOXENV="py39-universal"
 
 install:
   - pip install -U pip
