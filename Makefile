@@ -8,9 +8,9 @@ all:
 	python setup.py --hpy-abi=universal build_ext -if
 
 test:
-	python -m pytest tests/tests.py
-	#XXX we need a way to re-enable this test on CPython
-	#HPY_UNIVERSAL=1 python -m pytest tests/tests.py
+	HPY_ABI=cpython python -m pytest tests/tests.py
+	HPY_ABI=universal python -m pytest tests/tests.py
+	HPY_ABI=debug python -m pytest tests/tests.py
 
 benchmark:
 	python -m benchmark.main
