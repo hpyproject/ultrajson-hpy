@@ -18,8 +18,10 @@ else:
     import unittest
 
 import os
-import ujson_hpy as ujson
 
+from .support import import_ujson_hpy
+
+ujson = import_ujson_hpy()
 json_unicode = json.dumps if six.PY3 else functools.partial(json.dumps, encoding="utf-8")
 
 
