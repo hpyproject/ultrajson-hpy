@@ -1,15 +1,19 @@
 import sys
-CPYTHON = not hasattr(sys, 'pypy_version_info')
 import time
 import json
 import ujson
 
-from tests.support import import_ujson_universal
-ujson_hpy_universal = import_ujson_universal()
+from tests.support import import_ujson_hpy
+
+ujson_hpy_universal = import_ujson_hpy("universal")
 ujson_hpy_universal.__name__ = 'ujson_hpy_universal'
 
+ujson_hpy_debug = import_ujson_hpy("debug")
+ujson_hpy_debug.__name__ = 'ujson_hpy_debug'
+
+CPYTHON = not hasattr(sys, 'pypy_version_info')
 if CPYTHON:
-    import ujson_hpy
+    ujson_hpy = import_ujson_hpy("cpython")
 
 
 def benchmark(mod, fname, N):
@@ -28,6 +32,7 @@ def main():
     fname = 'benchmark/2015-01-01-15.json'
     benchmark(json, fname, N)
     benchmark(ujson_hpy_universal, fname, N)
+    benchmark(ujson_hpy_debug, fname, N)
     benchmark(ujson, fname, N)
     if CPYTHON:
         benchmark(ujson_hpy, fname, N)
