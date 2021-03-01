@@ -75,7 +75,7 @@ HPy_MODINIT(ujson_hpy)
 static HPy init_ujson_hpy_impl(HPyContext ctx)
 {
   HPy module;
-  //PyObject *version_string;
+  HPy version_string;
 
   initObjToJSON();
   module = HPyModule_Create(ctx, &moduledef);
@@ -83,7 +83,11 @@ static HPy init_ujson_hpy_impl(HPyContext ctx)
       return HPy_NULL;
   }
 
-  //version_string = PyUnicode_FromString (UJSON_VERSION);
-  //PyModule_AddObject (module, "__version__", version_string);
+  version_string = HPyUnicode_FromString(ctx, UJSON_VERSION);
+  if (HPy_IsNull(version_string)) {
+      HPy_Close(ctx, module);
+      return HPy_NULL;
+  }
+  HPy_SetAttr_s(ctx, module, "__version__", version_string);
   return module;
 }
