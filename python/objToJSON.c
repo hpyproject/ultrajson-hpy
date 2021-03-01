@@ -895,11 +895,10 @@ objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy k
 {
   HPy data;
   HPy file;
-  PyObject *file_o;
   HPy string;
-  PyObject *string_o;
-  PyObject *write;
-  PyObject *argtuple;
+  HPy write;
+  HPy argtuple;
+  HPy result;
   HPyTracker ht;
 
   PRINTMARK();
@@ -909,60 +908,56 @@ objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy k
     return HPy_NULL;
   }
 
-  file_o = HPy_AsPyObject(ctx, file);
-
-  if (!PyObject_HasAttrString (file_o, "write"))
+  if (!HPy_HasAttr_s(ctx, file, "write"))
   {
-    PyErr_Format (PyExc_TypeError, "expected file");
+    HPyTracker_Close(ctx, ht);
+    HPyErr_SetString(ctx, ctx->h_TypeError, "expected file");
     return HPy_NULL;
   }
 
-  write = PyObject_GetAttrString (file_o, "write");
-
-  if (!PyCallable_Check (write))
-  {
-    Py_XDECREF(write);
+  write = HPy_GetAttr_s(ctx, file, "write");
+  if (HPy_IsNull(write)) {
     HPyTracker_Close(ctx, ht);
-    PyErr_Format (PyExc_TypeError, "expected file");
+    return HPy_NULL;
+  }
+
+  if (!HPyCallable_Check(ctx, write))
+  {
+    HPy_Close(ctx, write);
+    HPyTracker_Close(ctx, ht);
+    HPyErr_SetString(ctx, ctx->h_TypeError, "expected file");
     return HPy_NULL;
   }
 
   HPy objtojson_args[] = { data };
   string = objToJSON_impl(ctx, self, objtojson_args, 1, kw);
   if (HPy_IsNull(string)) {
-    Py_XDECREF(write);
+    HPy_Close(ctx, write);
     HPyTracker_Close(ctx, ht);
     return HPy_NULL;
   }
 
-  string_o = HPy_AsPyObject(ctx, string);
-  if (string_o == NULL)
+  argtuple = HPyTuple_Pack(ctx, 1, string);
+  HPy_Close(ctx, string);
+  if (HPy_IsNull(argtuple))
   {
-    Py_XDECREF(write);
+    HPy_Close(ctx, write);
     HPyTracker_Close(ctx, ht);
     return HPy_NULL;
   }
 
-  argtuple = PyTuple_Pack (1, string_o);
-  if (argtuple == NULL)
+  result = HPy_CallTupleDict(ctx, write, argtuple, HPy_NULL);
+  if (HPy_IsNull(result))
   {
-    Py_XDECREF(write);
-    Py_XDECREF(string_o);
-    HPyTracker_Close(ctx, ht);
-    return HPy_NULL;
-  }
-  if (PyObject_CallObject (write, argtuple) == NULL)
-  {
-    Py_XDECREF(write);
-    Py_XDECREF(argtuple);
-    Py_XDECREF(string_o);
+    HPy_Close(ctx, write);
+    HPy_Close(ctx, argtuple);
     HPyTracker_Close(ctx, ht);
     return HPy_NULL;
   }
 
-  Py_XDECREF(write);
-  Py_DECREF(argtuple);
-  Py_XDECREF(string_o);
+  HPy_Close(ctx, write);
+  HPy_Close(ctx, argtuple);
+  HPy_Close(ctx, result);
   HPyTracker_Close(ctx, ht);
 
   PRINTMARK();
