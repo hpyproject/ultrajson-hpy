@@ -47,9 +47,16 @@ HPy_DECL_METH_VARARGS(objToJSONFile)
 
 /* JSONToobj */
 
-HPy_DECL_METH_O(JSONToObj)
-HPy_DECL_METH_O(JSONFileToObj)
+extern HPyDef JSONToObj;
+extern HPyDef JSONToObj_decode;
+extern HPyDef JSONFileToObj;
 
+static HPyDef *module_defines[] = {
+    &JSONToObj,
+    &JSONToObj_decode,
+    &JSONFileToObj,
+    NULL
+};
 
 #define ENCODER_HELP_TEXT "Use ensure_ascii=false to output UTF-8. Pass in double_precision to alter the maximum digit precision of doubles. Set encode_html_chars=True to encode < > & as unicode escape sequences. Set escape_forward_slashes=False to prevent escaping / characters."
 
@@ -68,7 +75,8 @@ static HPyModuleDef moduledef = {
   .m_name = "ujson_hpy",
   .m_doc = 0,
   .m_size = -1,
-  .m_methods = ujsonMethods,
+  .defines = module_defines,
+  .legacy_methods = ujsonMethods,
 };
 
 
