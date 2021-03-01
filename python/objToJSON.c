@@ -743,7 +743,34 @@ static char *Object_iterGetName(JSOBJ obj, JSONTypeContext *tc, size_t *outLen)
   return GET_TC(tc)->iterGetName(obj, tc, outLen);
 }
 
-HPy_DEF_METH_KEYWORDS(objToJSON)
+
+#define ENCODER_HELP_TEXT \
+    "Use ensure_ascii=false to output UTF-8. Pass in double_precision to" \
+    " alter the maximum digit precision of doubles. Set" \
+    " encode_html_chars=True to encode < > & as unicode escape sequences." \
+    " Set escape_forward_slashes=False to prevent escaping / characters."
+
+HPyDef_METH(objToJSON, "dumps", objToJSON_impl, HPyFunc_KEYWORDS,
+            .doc="Converts arbitrary object recursively into JSON. " \
+                 ENCODER_HELP_TEXT);
+
+// ujson.c does something a bit weird: it defines two Python-level methods
+// ("encode" and "dumps") for the same C-level function
+// ("objToJSON_impl"). HPyDef_METH does not support this use case, but we can
+// define our HPyDef by hand: HPyDef_METH is just a convenience macro and the
+// structure and fields of HPyDef is part of the publich API
+HPyDef objToJSON_encode = {
+   .kind = HPyDef_Kind_Meth,
+   .meth = {
+       .name = "encode",
+       .impl = objToJSON_impl,
+       .cpy_trampoline = objToJSON_trampoline,
+       .signature = HPyFunc_KEYWORDS,
+       .doc = ("Converts arbitrary object recursively into JSON. "
+               ENCODER_HELP_TEXT),
+   }
+};
+
 static HPy
 objToJSON_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
 {
@@ -757,6 +784,7 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
   HPy oencodeHTMLChars = HPy_NULL;
   HPy oescapeForwardSlashes = HPy_NULL;
   HPy osortKeys = HPy_NULL;
+  HPyTracker ht;
   PyObject *oinput_o;
 
   JSONObjectEncoder encoder =
@@ -790,29 +818,29 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
 
   PRINTMARK();
 
-  if (!HPyArg_ParseKeywords(ctx, args, nargs, kw, "O|OOOOi", kwlist, &oinput, &oensureAscii, &oencodeHTMLChars, &oescapeForwardSlashes, &osortKeys, &encoder.indent))
+  if (!HPyArg_ParseKeywords(ctx, &ht, args, nargs, kw, "O|OOOOi", kwlist, &oinput, &oensureAscii, &oencodeHTMLChars, &oescapeForwardSlashes, &osortKeys, &encoder.indent))
   {
      return HPy_NULL;
   }
 
   oinput_o = HPy_AsPyObject(ctx, oinput);
 
-  if (!HPy_IsNull(oensureAscii) && !HPyObject_IsTrue(ctx, oensureAscii))
+  if (!HPy_IsNull(oensureAscii) && !HPy_IsTrue(ctx, oensureAscii))
   {
     encoder.forceASCII = 0;
   }
 
-  if (!HPy_IsNull(oencodeHTMLChars) && HPyObject_IsTrue(ctx, oencodeHTMLChars))
+  if (!HPy_IsNull(oencodeHTMLChars) && HPy_IsTrue(ctx, oencodeHTMLChars))
   {
     encoder.encodeHTMLChars = 1;
   }
 
-  if (!HPy_IsNull(oescapeForwardSlashes) && !HPyObject_IsTrue(ctx, oescapeForwardSlashes))
+  if (!HPy_IsNull(oescapeForwardSlashes) && !HPy_IsTrue(ctx, oescapeForwardSlashes))
   {
     encoder.escapeForwardSlashes = 0;
   }
 
-  if (!HPy_IsNull(osortKeys) && HPyObject_IsTrue(ctx, osortKeys))
+  if (!HPy_IsNull(osortKeys) && HPy_IsTrue(ctx, osortKeys))
   {
     encoder.sortKeys = 1;
   }
@@ -828,6 +856,7 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
 
   if (PyErr_Occurred())
   {
+    HPyTracker_Close(ctx, ht);
     return HPy_NULL;
   }
 
@@ -840,6 +869,7 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
     }
 
     PyErr_Format (PyExc_OverflowError, "%s", encoder.errorMsg);
+    HPyTracker_Close(ctx, ht);
     return HPy_NULL;
   }
 
@@ -852,10 +882,14 @@ objToJSON_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
 
   PRINTMARK();
 
+  HPyTracker_Close(ctx, ht);
   return h_ret;
 }
 
-HPy_DEF_METH_KEYWORDS(objToJSONFile)
+
+HPyDef_METH(objToJSONFile, "dump", objToJSONFile_impl, HPyFunc_KEYWORDS,
+            .doc="Converts arbitrary object recursively into JSON file. " \
+                 ENCODER_HELP_TEXT);
 static HPy
 objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
 {
@@ -866,10 +900,11 @@ objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy k
   PyObject *string_o;
   PyObject *write;
   PyObject *argtuple;
+  HPyTracker ht;
 
   PRINTMARK();
 
-  if (!HPyArg_Parse(ctx, args, nargs, "OO", &data, &file))
+  if (!HPyArg_Parse(ctx, &ht, args, nargs, "OO", &data, &file))
   {
     return HPy_NULL;
   }
@@ -887,6 +922,7 @@ objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy k
   if (!PyCallable_Check (write))
   {
     Py_XDECREF(write);
+    HPyTracker_Close(ctx, ht);
     PyErr_Format (PyExc_TypeError, "expected file");
     return HPy_NULL;
   }
@@ -895,6 +931,7 @@ objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy k
   string = objToJSON_impl(ctx, self, objtojson_args, 1, kw);
   if (HPy_IsNull(string)) {
     Py_XDECREF(write);
+    HPyTracker_Close(ctx, ht);
     return HPy_NULL;
   }
 
@@ -902,6 +939,7 @@ objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy k
   if (string_o == NULL)
   {
     Py_XDECREF(write);
+    HPyTracker_Close(ctx, ht);
     return HPy_NULL;
   }
 
@@ -910,6 +948,7 @@ objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy k
   {
     Py_XDECREF(write);
     Py_XDECREF(string_o);
+    HPyTracker_Close(ctx, ht);
     return HPy_NULL;
   }
   if (PyObject_CallObject (write, argtuple) == NULL)
@@ -917,12 +956,14 @@ objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy k
     Py_XDECREF(write);
     Py_XDECREF(argtuple);
     Py_XDECREF(string_o);
+    HPyTracker_Close(ctx, ht);
     return HPy_NULL;
   }
 
   Py_XDECREF(write);
   Py_DECREF(argtuple);
   Py_XDECREF(string_o);
+  HPyTracker_Close(ctx, ht);
 
   PRINTMARK();
 

@@ -39,35 +39,27 @@ http://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
 #include "py_defines.h"
 #include "version.h"
 
-/* objToJSON */
-void initObjToJSON(void);
-
-HPy_DECL_METH_O(objToJSON)
-HPy_DECL_METH_VARARGS(objToJSONFile)
-
 /* JSONToobj */
 
 extern HPyDef JSONToObj;
 extern HPyDef JSONToObj_decode;
 extern HPyDef JSONFileToObj;
 
+/* objToJSON */
+
+void initObjToJSON(void);
+extern HPyDef objToJSON;
+extern HPyDef objToJSON_encode;
+extern HPyDef objToJSONFile;
+
 static HPyDef *module_defines[] = {
     &JSONToObj,
     &JSONToObj_decode,
     &JSONFileToObj,
+    &objToJSON,
+    &objToJSON_encode,
+    &objToJSONFile,
     NULL
-};
-
-#define ENCODER_HELP_TEXT "Use ensure_ascii=false to output UTF-8. Pass in double_precision to alter the maximum digit precision of doubles. Set encode_html_chars=True to encode < > & as unicode escape sequences. Set escape_forward_slashes=False to prevent escaping / characters."
-
-static HPyMethodDef ujsonMethods[] = {
-  {"encode", objToJSON, HPy_METH_KEYWORDS, "Converts arbitrary object recursively into JSON. " ENCODER_HELP_TEXT},
-  {"decode", JSONToObj, HPy_METH_O, "Converts JSON as string to dict object structure. Use precise_float=True to use high precision float decoder."},
-  {"dumps", objToJSON, HPy_METH_KEYWORDS,  "Converts arbitrary object recursively into JSON. " ENCODER_HELP_TEXT},
-  {"loads", JSONToObj, HPy_METH_O,  "Converts JSON as string to dict object structure. Use precise_float=True to use high precision float decoder."},
-  {"dump", objToJSONFile, HPy_METH_KEYWORDS, "Converts arbitrary object recursively into JSON file. " ENCODER_HELP_TEXT},
-  {"load", JSONFileToObj, HPy_METH_O, "Converts JSON as file to dict object structure. Use precise_float=True to use high precision float decoder."},
-  {NULL, NULL, 0, NULL}       /* Sentinel */
 };
 
 static HPyModuleDef moduledef = {
@@ -76,7 +68,6 @@ static HPyModuleDef moduledef = {
   .m_doc = 0,
   .m_size = -1,
   .defines = module_defines,
-  .legacy_methods = ujsonMethods,
 };
 
 
