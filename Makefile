@@ -1,7 +1,6 @@
 .PHONY: all test benchmark
 
 all:
-	python setup.py build
 	python setup.py build_ext -if
 	@echo
 	@echo
