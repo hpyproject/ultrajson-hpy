@@ -39,31 +39,27 @@ http://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
 #include "py_defines.h"
 #include "version.h"
 
-/* objToJSON */
-PyObject* objToJSON(PyObject* self, PyObject *args, PyObject *kwargs);
-void initObjToJSON(void);
-
-/* objToJSONFile */
-PyObject* objToJSONFile(PyObject* self, PyObject *args, PyObject *kwargs);
+/* JSONToobj */
 
 extern HPyDef JSONToObj;
 extern HPyDef JSONToObj_decode;
 extern HPyDef JSONFileToObj;
 
+/* objToJSON */
+
+void initObjToJSON(void);
+extern HPyDef objToJSON;
+extern HPyDef objToJSON_encode;
+extern HPyDef objToJSONFile;
+
 static HPyDef *module_defines[] = {
     &JSONToObj,
     &JSONToObj_decode,
     &JSONFileToObj,
+    &objToJSON,
+    &objToJSON_encode,
+    &objToJSONFile,
     NULL
-};
-
-#define ENCODER_HELP_TEXT "Use ensure_ascii=false to output UTF-8. Pass in double_precision to alter the maximum digit precision of doubles. Set encode_html_chars=True to encode < > & as unicode escape sequences. Set escape_forward_slashes=False to prevent escaping / characters."
-
-static PyMethodDef ujsonMethods[] = {
-  {"encode", (PyCFunction) objToJSON, METH_VARARGS | METH_KEYWORDS, "Converts arbitrary object recursively into JSON. " ENCODER_HELP_TEXT},
-  {"dumps", (PyCFunction) objToJSON, METH_VARARGS | METH_KEYWORDS,  "Converts arbitrary object recursively into JSON. " ENCODER_HELP_TEXT},
-  {"dump", (PyCFunction) objToJSONFile, METH_VARARGS | METH_KEYWORDS, "Converts arbitrary object recursively into JSON file. " ENCODER_HELP_TEXT},
-  {NULL, NULL, 0, NULL}       /* Sentinel */
 };
 
 static HPyModuleDef moduledef = {
@@ -72,7 +68,6 @@ static HPyModuleDef moduledef = {
   .m_doc = 0,
   .m_size = -1,
   .defines = module_defines,
-  .legacy_methods = ujsonMethods,
 };
 
 
@@ -80,7 +75,7 @@ HPy_MODINIT(ujson_hpy)
 static HPy init_ujson_hpy_impl(HPyContext ctx)
 {
   HPy module;
-  //PyObject *version_string;
+  HPy version_string;
 
   initObjToJSON();
   module = HPyModule_Create(ctx, &moduledef);
@@ -88,7 +83,11 @@ static HPy init_ujson_hpy_impl(HPyContext ctx)
       return HPy_NULL;
   }
 
-  //version_string = PyUnicode_FromString (UJSON_VERSION);
-  //PyModule_AddObject (module, "__version__", version_string);
+  version_string = HPyUnicode_FromString(ctx, UJSON_VERSION);
+  if (HPy_IsNull(version_string)) {
+      HPy_Close(ctx, module);
+      return HPy_NULL;
+  }
+  HPy_SetAttr_s(ctx, module, "__version__", version_string);
   return module;
 }

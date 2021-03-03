@@ -149,7 +149,7 @@ HPyDef_METH(JSONToObj, "loads", JSONToObj_impl, HPyFunc_O,
                  "Use precise_float=True to use high precision float decoder.");
 
 // ujson.c does something a bit weird: it defines two Python-level methods
-// ("encode" and "loads") for the same C-level function
+// ("decode" and "loads") for the same C-level function
 // ("JSONToObj_impl"). HPyDef_METH does not support this use case, but we can
 // define our HPyDef by hand: HPyDef_METH is just a convenience macro and the
 // structure and fields of HPyDef is part of the publich API
