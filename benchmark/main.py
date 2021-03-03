@@ -11,9 +11,10 @@ ujson_hpy_universal.__name__ = 'ujson_hpy_universal'
 ujson_hpy_debug = import_ujson_hpy("debug")
 ujson_hpy_debug.__name__ = 'ujson_hpy_debug'
 
-CPYTHON = not hasattr(sys, 'pypy_version_info')
+CPYTHON = (sys.implementation.name == "cpython")
 if CPYTHON:
-    ujson_hpy = import_ujson_hpy("cpython")
+    ujson_hpy_cpython = import_ujson_hpy("cpython")
+    ujson_hpy_cpython.__name__ = 'ujson_hpy_cpython'
 
 
 def benchmark(mod, fname, N):
@@ -35,7 +36,7 @@ def main():
     benchmark(ujson_hpy_debug, fname, N)
     benchmark(ujson, fname, N)
     if CPYTHON:
-        benchmark(ujson_hpy, fname, N)
+        benchmark(ujson_hpy_cpython, fname, N)
 
 
 if __name__ == '__main__':
