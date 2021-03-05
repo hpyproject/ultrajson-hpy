@@ -772,7 +772,7 @@ HPyDef objToJSON_encode = {
 };
 
 static HPy
-objToJSON_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
+objToJSON_impl(HPyContext *ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
 {
   static const char *kwlist[] = { "obj", "ensure_ascii", "encode_html_chars", "escape_forward_slashes", "sort_keys", "indent", NULL };
 
@@ -891,7 +891,7 @@ HPyDef_METH(objToJSONFile, "dump", objToJSONFile_impl, HPyFunc_KEYWORDS,
             .doc="Converts arbitrary object recursively into JSON file. " \
                  ENCODER_HELP_TEXT);
 static HPy
-objToJSONFile_impl(HPyContext ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
+objToJSONFile_impl(HPyContext *ctx, HPy self, HPy *args, HPy_ssize_t nargs, HPy kw)
 {
   HPy data;
   HPy file;
