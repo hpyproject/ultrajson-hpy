@@ -45,7 +45,7 @@ http://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
 
 static void Object_objectAddKey(void *prv, JSOBJ obj, JSOBJ name, JSOBJ value)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy h_obj = HPy_FromVoidP(obj);
   HPy h_name = HPy_FromVoidP(name);
   HPy h_value = HPy_FromVoidP(value);
@@ -57,7 +57,7 @@ static void Object_objectAddKey(void *prv, JSOBJ obj, JSOBJ name, JSOBJ value)
 
 static void Object_arrayAddItem(void *prv, JSOBJ obj, JSOBJ value)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy h_obj = HPy_FromVoidP(obj);
   HPy h_value = HPy_FromVoidP(value);
   HPyList_Append(ctx, h_obj, h_value);
@@ -67,77 +67,77 @@ static void Object_arrayAddItem(void *prv, JSOBJ obj, JSOBJ value)
 
 static JSOBJ Object_newString(void *prv, wchar_t *start, wchar_t *end)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPyUnicode_FromWideChar(ctx, start, (end - start));
   return HPy_AsVoidP(res);
 }
 
 static JSOBJ Object_newTrue(void *prv)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPy_Dup(ctx, ctx->h_True);
   return HPy_AsVoidP(res);
 }
 
 static JSOBJ Object_newFalse(void *prv)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPy_Dup(ctx, ctx->h_False);
   return HPy_AsVoidP(res);
 }
 
 static JSOBJ Object_newNull(void *prv)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPy_Dup(ctx, ctx->h_None);
   return HPy_AsVoidP(res);
 }
 
 static JSOBJ Object_newObject(void *prv)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPyDict_New(ctx);
   return HPy_AsVoidP(res);
 }
 
 static JSOBJ Object_newArray(void *prv)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPyList_New(ctx, 0);
   return HPy_AsVoidP(res);
 }
 
 static JSOBJ Object_newInteger(void *prv, JSINT32 value)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPyLong_FromLong(ctx, (long) value);
   return HPy_AsVoidP(res);
 }
 
 static JSOBJ Object_newLong(void *prv, JSINT64 value)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPyLong_FromLongLong(ctx, value);
   return HPy_AsVoidP(res);
 }
 
 static JSOBJ Object_newUnsignedLong(void *prv, JSUINT64 value)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPyLong_FromUnsignedLongLong(ctx, value);
   return HPy_AsVoidP(res);
 }
 
 static JSOBJ Object_newDouble(void *prv, double value)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy res = HPyFloat_FromDouble(ctx, value);
   return HPy_AsVoidP(res);
 }
 
 static void Object_releaseObject(void *prv, JSOBJ obj)
 {
-  HPyContext ctx = (HPyContext)prv;
+  HPyContext *ctx = (HPyContext *)prv;
   HPy h_obj = HPy_FromVoidP(obj);
   HPy_Close(ctx, h_obj);
 }
@@ -166,7 +166,7 @@ HPyDef JSONToObj_decode = {
 };
 
 static HPy
-JSONToObj_impl(HPyContext ctx, HPy self, HPy arg)
+JSONToObj_impl(HPyContext *ctx, HPy self, HPy arg)
 {
   HPy sarg;
   HPy h_ret;
@@ -251,7 +251,7 @@ HPyDef_METH(JSONFileToObj, "load", JSONFileToObj_impl, HPyFunc_O,
             .doc="Converts JSON as file to dict object structure. "
                  "Use precise_float=True to use high precision float decoder.")
 static HPy
-JSONFileToObj_impl(HPyContext ctx, HPy self, HPy h_arg)
+JSONFileToObj_impl(HPyContext *ctx, HPy self, HPy h_arg)
 {
   PyObject *file = HPy_AsPyObject(ctx, h_arg);
   PyObject *read;
