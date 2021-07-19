@@ -61,7 +61,7 @@ finally:
 
 setup(
     name = 'ujson-hpy',
-    setup_requires=['hpy.devel'],
+    setup_requires=['hpy'],
     version = get_version(),
     description = "Ultra fast JSON encoder and decoder for Python",
     long_description = README,
